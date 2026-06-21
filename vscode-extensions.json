@@ -1,0 +1,11 @@
+{
+  "recommendations": [
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
+    "Anthropic.claude-code",
+    "charliermarsh.ruff",
+    "eamodio.gitlens",
+    "ms-vscode-remote.remote-containers",
+    "GitHub.vscode-pull-request-github"
+  ]
+}

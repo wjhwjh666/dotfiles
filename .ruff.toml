@@ -1,0 +1,42 @@
+# Ruff — Python 唯一格式化+lint 工具（不与 Prettier/ESLint 重叠）
+# 全局配置，所有 Python 项目默认继承
+# 注意: 独立 .ruff.toml 文件不用 [tool.ruff] 前缀（那是 pyproject.toml 的语法）
+
+# === 行宽 ===
+line-length = 120
+
+# === Python 目标版本 ===
+target-version = "py313"
+
+# === 格式化（替代 Black）===
+[format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+
+# === Lint 规则集 ===
+[lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # Pyflakes
+    "I",   # isort（import 排序）
+    "N",   # pep8-naming
+    "UP",  # pyupgrade（语法现代化）
+    "B",   # flake8-bugbear
+    "SIM", # flake8-simplify
+    "C4",  # flake8-comprehensions
+]
+ignore = [
+    "E501",  # 超长行由 formatter 处理
+]
+
+# === 按文件类型覆盖 ===
+[lint.per-file-ignores]
+"__init__.py" = ["F401"]  # init 文件允许未使用的 import
+
+# === isort 规则与 formatter 对齐 ===
+[lint.isort]
+combine-as-imports = true
+force-sort-within-sections = true
