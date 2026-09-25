@@ -22,7 +22,8 @@ authoritative and is not -- a 2026-09-14 audit found 48 such references that had
 accumulated over months, each one written by a past turn that nobody checked.
 Catching it at the turn that introduces it is the only cheap moment.
 
-Blocking contract: exit 2, reason from hookSpecificOutput.blockReason.
+Blocking contract: exit 2 + stderr, plus the documented Stop JSON
+{"decision": "block", "reason": ...} on stdout.
 Fail-open: any internal error exits 0. A gate that wedges every turn is worse
 than the regression it detects.
 """
@@ -44,8 +45,10 @@ MAX_FILES = 40
 
 
 def block(reason):
-    print(json.dumps({"hookSpecificOutput": {
-        "hookEventName": "Stop", "blockReason": reason}}, ensure_ascii=False))
+    # Stop's schema has top-level decision/reason; its hookSpecificOutput only
+    # takes additionalContext. The old hookSpecificOutput.blockReason is not in
+    # the hooks reference, so only exit 2 + stderr ever carried the reason.
+    print(json.dumps({"decision": "block", "reason": reason}, ensure_ascii=False))
     sys.stderr.write(reason)
     sys.exit(2)
 
