@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# dotfiles pre-commit: block secrets, local timezone/location leaks, and non-UTC commit time.
+# Enable once per clone: git config core.hooksPath scripts/hooks
+set -u
+
+fail=0
+added=$(git diff --cached -U0 --no-color | grep -E '^\+' | grep -vE '^\+\+\+ ')
+
+# Patterns are written so that this file never matches itself.
+SECRET='sk-[A-Za-z0-9_-]{20,}|ghp_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|-----BEGIN [A-Z ]*PRIVATE KEY-----'
+TZLEAK='\+08:?00|UTC\+8|Asia[/]|北京时[间]|东八[区]'
+
+if printf '%s\n' "$added" | grep -qE "$SECRET"; then
+  echo "✖ pre-commit: 暂存区含疑似密钥，提交已阻止" >&2
+  fail=1
+fi
+
+if printf '%s\n' "$added" | grep -qE "$TZLEAK"; then
+  echo "✖ pre-commit: 暂存区含本地时区/位置信息，提交已阻止" >&2
+  fail=1
+fi
+
+offset=$(git var GIT_AUTHOR_IDENT | awk '{print $NF}')
+if [ "$offset" != "+0000" ]; then
+  echo "✖ pre-commit: 提交时区为 $offset，需设置环境变量 TZ=UTC0" >&2
+  fail=1
+fi
+
+exit $fail

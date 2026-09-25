@@ -1,0 +1,37 @@
+# === 密钥与凭据（绝不提交）===
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa*
+id_ed25519*
+!*.pub
+.credentials.json
+credentials.json
+auth.json
+secrets.json
+settings.json
+settings.local.json
+
+# === 会话记录与运行时数据（含对话原文，易泄露密钥）===
+projects/
+file-history/
+*.jsonl
+*.db
+*.sqlite
+*.log
+tool-output/
+
+# === 缓存与构建产物 ===
+__pycache__/
+*.pyc
+.venv/
+node_modules/
+*.bak
+
+# === 系统文件 ===
+Thumbs.db
+desktop.ini
+.DS_Store
