@@ -19,6 +19,7 @@
 | `reports/trending/YYYY-MM-DD.md` | GitHub 热点简报 |
 | `reports/inspect/YYYY-MM-DD.md` | 仓库 / 本机巡检报告 |
 | `reports/eco/YYYY-MM-DD.md` | 生态扩充周报 |
+| `reports/sessions/YYYY-MM-DD.md` | Claude 会话工作日志（操作时间线、经验教训、待办） |
 | `claude/` | 需要备份的 Claude Code 配置（**只放手工挑选的文件**，比如 CLAUDE.md、hooks、skills） |
 | `scripts/` | 本机工具脚本 |
 
