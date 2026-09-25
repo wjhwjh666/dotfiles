@@ -40,12 +40,14 @@
 ## 🔐 密钥红线（提交前必查）
 
 1. **禁止提交**：API Key（`sk-*`、`ghp_*`、`github_pat_*`）、私钥、`.credentials.json`、`auth.json`、`settings.json`，以及会话记录（`projects/`、`*.jsonl`、`file-history/`）。`.gitignore` 已拦截这些，**不得用 `git add -f` 绕过**。
-2. **提交前自动拦截**：`scripts/hooks/pre-commit` 在每次 commit 时检查三项，任一命中即阻止提交：
+2. **提交前自动拦截**：`scripts/hooks/pre-commit` 在每次 commit 时检查四项，任一命中即阻止提交：
    - 新增内容含疑似密钥
    - 新增内容含本地时区或位置信息
+   - 新增内容含中转切换工具名称（规则见钩子里的 `RELAY`）
    - 提交时区不是 `+0000`
 
    本地 `git merge` 生成的合并提交，由 `scripts/hooks/pre-merge-commit` 做同样的检查。
    每个 clone 启用一次：`git config core.hooksPath scripts/hooks`。**禁止用 `--no-verify` 绕过。**
 3. 报告里出现密钥时，最多保留前 4 位，其余打码。
 4. 密钥一律用 `$ENV_VAR` 引用，不写进代码。
+5. **只走官方订阅**：本机 Claude、Codex 自 2026-09-23 起只走官方订阅。仓库任何文件都不得出现中转切换工具（名称见钩子的 `RELAY` 规则）、中转端口或指向中转的 `*_BASE_URL`。热点日报、生态周报遇到这类项目直接跳过，不列入、不评估。
