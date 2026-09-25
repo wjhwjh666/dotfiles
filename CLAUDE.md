@@ -31,7 +31,9 @@
 |------|------|
 | 新建分支、commit、push | ✅ 允许，分支名用 `claude/<主题>` |
 | 开 PR | ✅ 一律开 **draft PR**，由用户审核合并 |
-| 直接推送 `master` | ❌ 禁止 |
+| 合并 PR | ✅ **只能在本机 Git Bash 合并**：`git checkout master && git pull && git fetch origin <分支> && git merge --no-ff origin/<分支> && git push`。推送后 GitHub 会自动把 PR 标为已合并 |
+| 在 GitHub 网页点 Merge / Squash / Rebase，或在网页上直接编辑文件 | ❌ 禁止。网页生成的提交会带浏览器时区，也不经过本机钩子 |
+| 直接推送 `master` | ❌ 禁止，唯一例外是上面的本地合并 |
 | `--force` / `reset --hard` / 改写历史 | ❌ 禁止（用户明确要求时除外） |
 | 删除分支、删除仓库 | ❌ 禁止，由用户本人操作 |
 
@@ -43,6 +45,7 @@
    - 新增内容含本地时区或位置信息
    - 提交时区不是 `+0000`
 
+   本地 `git merge` 生成的合并提交，由 `scripts/hooks/pre-merge-commit` 做同样的检查。
    每个 clone 启用一次：`git config core.hooksPath scripts/hooks`。**禁止用 `--no-verify` 绕过。**
 3. 报告里出现密钥时，最多保留前 4 位，其余打码。
 4. 密钥一律用 `$ENV_VAR` 引用，不写进代码。
