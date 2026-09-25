@@ -1079,8 +1079,14 @@ def main():
         reason = ""
         if blocked:
             try:
-                _o = json.loads(out)["hookSpecificOutput"]
-                reason = _o.get("permissionDecisionReason") or _o["blockReason"]
+                _j = json.loads(out)
+                if guard == STOP_GATE:
+                    # Stop uses top-level decision/reason, not hookSpecificOutput.
+                    if _j["decision"] != "block":
+                        raise ValueError("decision is not block")
+                    reason = _j["reason"]
+                else:
+                    reason = _j["hookSpecificOutput"]["permissionDecisionReason"]
             except Exception:
                 failures.append((name, "exit 2 but stdout is not the deny JSON: %r" % out[:80]))
                 print("  FAIL   %s -- malformed deny payload" % name)
