@@ -5,7 +5,7 @@
 
 ## 1. 语言
 
-- Git: 唯一存储仓库 = `wjhwjh666/dotfiles`（本机 `~/dotfiles`，规范见其 CLAUDE.md）| 仅在该仓库允许 commit/push 到 `claude/*` 分支并开 draft PR | 禁直推 master/--force/reset --hard/删分支/删库 | `~` 不是仓库，禁止 git init | 改 >3 文件先摘要确认
+- Git: 唯一存储仓库 = `wjhwjh666/dotfiles`（本机 `~/dotfiles`，规范见其 CLAUDE.md）| 仅在该仓库允许 commit/push 到 `claude/*` 分支并开 draft PR | 合并只在本机 Git Bash `git merge --no-ff` 后 push，禁止网页 Merge/Squash/Rebase/网页编辑 | 时间一律 UTC（本机 `TZ=UTC0`），钩子 `git config core.hooksPath scripts/hooks`，禁 `--no-verify` | 禁直推 master（本地合并除外）/--force/reset --hard/删分支/删库 | `~` 不是仓库，禁止 git init | 改 >3 文件先摘要确认
 
 中文说明，英文代码。标识符、注释、commit message、日志一律英文；面向用户的解释用中文。
 
