@@ -15,15 +15,16 @@
 | 目录/文件 | 存放内容 |
 |-----------|---------|
 | 根目录 `.ruff.toml` `.prettierrc.json` `eslint.config.js` | 全局格式化 / lint 配置 |
-| 根目录 `vscode-*.json` | VS Code 设置与扩展清单 |
 | `reports/trending/YYYY-MM-DD.md` | GitHub 热点简报 |
 | `reports/inspect/YYYY-MM-DD.md` | 仓库 / 本机巡检报告 |
 | `reports/eco/YYYY-MM-DD.md` | 生态扩充周报 |
-| `reports/sessions/YYYY-MM-DD.md` | Claude 会话工作日志（操作时间线、经验教训、待办） |
+| `reports/sessions/YYYY-MM-DD.md` | Claude 会话工作日志（只记经验教训和待办） |
 | `claude/` | 需要备份的 Claude Code 配置（**只放手工挑选的文件**，比如 CLAUDE.md、hooks、skills） |
 | `scripts/` | 本机工具脚本 |
 
 日期一律用 UTC。
+
+报告只留结论、数据和待办。对话经过、操作流水账、"本 PR 改了什么"不写进报告，git 历史里都有。
 
 ## 🔀 Git 规则
 
@@ -40,10 +41,11 @@
 ## 🔐 密钥红线（提交前必查）
 
 1. **禁止提交**：API Key（`sk-*`、`ghp_*`、`github_pat_*`）、私钥、`.credentials.json`、`auth.json`、`settings.json`，以及会话记录（`projects/`、`*.jsonl`、`file-history/`）。`.gitignore` 已拦截这些，**不得用 `git add -f` 绕过**。
-2. **提交前自动拦截**：`scripts/hooks/pre-commit` 在每次 commit 时检查四项，任一命中即阻止提交：
+2. **提交前自动拦截**：`scripts/hooks/pre-commit` 在每次 commit 时检查五项，任一命中即阻止提交：
    - 新增内容含疑似密钥
    - 新增内容含本地时区或位置信息
    - 新增内容含中转切换工具名称（规则见钩子里的 `RELAY`）
+   - 新增内容含 Windows 用户目录的绝对路径（会带出真实用户名）。改写成 `~`、`%USERPROFILE%`，或把用户名打成 `***`
    - 提交时区不是 `+0000`
 
    本地 `git merge` 生成的合并提交，由 `scripts/hooks/pre-merge-commit` 做同样的检查。
