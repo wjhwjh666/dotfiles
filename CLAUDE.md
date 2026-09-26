@@ -22,6 +22,7 @@
 | `reports/sessions/YYYY-MM-DD.md` | Claude 会话工作日志（操作时间线、经验教训、待办） |
 | `claude/` | 需要备份的 Claude Code 配置（**只放手工挑选的文件**，比如 CLAUDE.md、hooks、skills） |
 | `scripts/` | 本机工具脚本 |
+| `web/<名称>/index.html` | 网页小作品（单文件 HTML，浏览器直接打开） |
 
 日期一律用 UTC。
 
