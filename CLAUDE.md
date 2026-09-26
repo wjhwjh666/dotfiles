@@ -15,7 +15,6 @@
 | 目录/文件 | 存放内容 |
 |-----------|---------|
 | 根目录 `.ruff.toml` `.prettierrc.json` `eslint.config.js` | 全局格式化 / lint 配置 |
-| 根目录 `vscode-*.json` | VS Code 设置与扩展清单 |
 | `reports/trending/YYYY-MM-DD.md` | GitHub 热点简报 |
 | `reports/inspect/YYYY-MM-DD.md` | 仓库 / 本机巡检报告 |
 | `reports/eco/YYYY-MM-DD.md` | 生态扩充周报 |
