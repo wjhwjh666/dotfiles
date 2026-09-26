@@ -1,6 +1,6 @@
 #!/bin/bash
 # === GitHub Keys 一键上传脚本 ===
-# 用法: bash upload-github-keys.sh
+# 用法: bash scripts/upload-github-keys.sh
 # 会在浏览器弹出 device activation，按提示操作即可
 
 set -e
