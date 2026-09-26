@@ -41,10 +41,11 @@
 ## 🔐 密钥红线（提交前必查）
 
 1. **禁止提交**：API Key（`sk-*`、`ghp_*`、`github_pat_*`）、私钥、`.credentials.json`、`auth.json`、`settings.json`，以及会话记录（`projects/`、`*.jsonl`、`file-history/`）。`.gitignore` 已拦截这些，**不得用 `git add -f` 绕过**。
-2. **提交前自动拦截**：`scripts/hooks/pre-commit` 在每次 commit 时检查四项，任一命中即阻止提交：
+2. **提交前自动拦截**：`scripts/hooks/pre-commit` 在每次 commit 时检查五项，任一命中即阻止提交：
    - 新增内容含疑似密钥
    - 新增内容含本地时区或位置信息
    - 新增内容含中转切换工具名称（规则见钩子里的 `RELAY`）
+   - 新增内容含 Windows 用户目录的绝对路径（会带出真实用户名）。改写成 `~`、`%USERPROFILE%`，或把用户名打成 `***`
    - 提交时区不是 `+0000`
 
    本地 `git merge` 生成的合并提交，由 `scripts/hooks/pre-merge-commit` 做同样的检查。
