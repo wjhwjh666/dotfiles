@@ -21,7 +21,8 @@
 | `reports/eco/YYYY-MM-DD.md` | 生态扩充周报 |
 | `reports/sessions/YYYY-MM-DD.md` | Claude 会话工作日志（操作时间线、经验教训、待办） |
 | `claude/` | 需要备份的 Claude Code 配置（**只放手工挑选的文件**，比如 CLAUDE.md、hooks、skills） |
-| `scripts/` | 本机工具脚本 |
+| `scripts/` | 本机工具脚本；`scripts/ci-check.sh` 是钩子规则的服务端版本 |
+| `.github/workflows/guard.yml` | PR 与 master 推送时跑 `ci-check.sh` |
 | `web/<名称>/index.html` | 网页小作品（单文件 HTML，浏览器直接打开） |
 
 日期一律用 UTC。
@@ -49,6 +50,7 @@
 
    本地 `git merge` 生成的合并提交，由 `scripts/hooks/pre-merge-commit` 做同样的检查。
    每个 clone 启用一次：`git config core.hooksPath scripts/hooks`。**禁止用 `--no-verify` 绕过。**
+   本地钩子管不到网页合并、云端会话，所以 GitHub Actions `guard` 会在每个 PR 和每次推送 master 时再查一遍：规则直接从钩子读取，另外逐个检查新提交的作者/提交者时区，并检查被 `.gitignore` 拦截却仍被跟踪的文件。`guard` 变红就先修，不要合并。
 3. 报告里出现密钥时，最多保留前 4 位，其余打码。
 4. 密钥一律用 `$ENV_VAR` 引用，不写进代码。
 5. **只走官方订阅**：本机 Claude、Codex 自 2026-09-23 起只走官方订阅。仓库任何文件都不得出现中转切换工具（名称见钩子的 `RELAY` 规则）、中转端口或指向中转的 `*_BASE_URL`。热点日报、生态周报遇到这类项目直接跳过，不列入、不评估。
