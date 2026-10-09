@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# dotfiles pre-commit: block secrets, local timezone/location leaks, and non-UTC commit time.
+# dotfiles pre-commit: block secrets, local timezone/location leaks, relay tool names,
+# user-name home paths, and non-UTC commit time.
 # Enable once per clone: git config core.hooksPath scripts/hooks
 set -u
 
@@ -11,6 +12,8 @@ SECRET='sk-[A-Za-z0-9_-]{20,}|ghp_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|
 TZLEAK='\+08:?00|UTC\+8|Asia[/]|北京时[间]|东八[区]'
 # Relay switchers: this machine uses official subscriptions only (since 2026-09-23).
 RELAY='cc[-_ ]?switch'
+# Absolute Windows home paths carry the real user name; write ~, %USERPROFILE% or *** instead.
+USERPATH='([A-Za-z]:|/[A-Za-z])[\\/]+Users[\\/]+[^\\/<%$*[:space:]]'
 
 if printf '%s\n' "$added" | grep -qE "$SECRET"; then
   echo "✖ pre-commit: 暂存区含疑似密钥，提交已阻止" >&2
@@ -24,6 +27,11 @@ fi
 
 if printf '%s\n' "$added" | grep -qiE "$RELAY"; then
   echo "✖ pre-commit: 暂存区含中转切换工具名称（本机只走官方订阅），提交已阻止" >&2
+  fail=1
+fi
+
+if printf '%s\n' "$added" | grep -qE "$USERPATH"; then
+  echo "✖ pre-commit: 暂存区含带用户名的 Windows 用户目录路径，改用 ~、%USERPROFILE% 或把用户名写成 ***，提交已阻止" >&2
   fail=1
 fi
 
