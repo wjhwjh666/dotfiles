@@ -21,3 +21,5 @@ jobs:
           BASE: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
           HEAD: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
         run: bash scripts/ci-check.sh "$BASE" "$HEAD"
+      - name: guard regression checks
+        run: bash scripts/test-ci-check.sh

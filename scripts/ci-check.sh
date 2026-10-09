@@ -2,14 +2,32 @@
 # Server-side copy of the pre-commit checks, for commits that never passed through the local hook
 # (GitHub web merges/edits, cloud sessions without core.hooksPath).
 # Usage: scripts/ci-check.sh <base-sha> <head-sha>   (base may be empty or all zeros: only head is checked)
-# Regexes are read from scripts/hooks/pre-commit so the two never drift apart.
-set -u
+# Regexes are read from scripts/hooks/pre-commit, including USERPATH when present.
+set -u -o pipefail
 
 base=${1:-}
 head=${2:-HEAD}
 hook="$(dirname "$0")/hooks/pre-commit"
 
-eval "$(grep -E '^(SECRET|TZLEAK|RELAY)=' "$hook")"
+error() {
+  echo "ci-check: $*" >&2
+  exit 2
+}
+
+# Read literal pattern assignments without executing the hook's contents.
+[ -r "$hook" ] || error "Cannot read hook rules."
+SECRET= TZLEAK= RELAY= USERPATH=
+while IFS= read -r line || [ -n "$line" ]; do
+  line=${line%$'\r'}
+  case "$line" in
+    SECRET=*|TZLEAK=*|RELAY=*|USERPATH=*)
+      name=${line%%=*}
+      value=${line#*=}
+      [[ "$value" =~ ^\'([^\']*)\'$ ]] || error "Invalid rule assignment: $name"
+      printf -v "$name" '%s' "${BASH_REMATCH[1]}"
+      ;;
+  esac
+done < "$hook"
 for v in SECRET TZLEAK RELAY; do
   if [ -z "${!v:-}" ]; then
     echo "✖ ci-check: 无法从 $hook 读取规则 $v" >&2
@@ -17,47 +35,52 @@ for v in SECRET TZLEAK RELAY; do
   fi
 done
 
+rules=(SECRET TZLEAK RELAY)
+[ -z "${USERPATH:-}" ] || rules+=(USERPATH)
+for name in "${rules[@]}"; do
+  printf '\n' | grep -E "${!name}" >/dev/null
+  rc=$?
+  [ "$rc" -le 1 ] || error "Invalid pattern: $name"
+done
+
+head=$(git rev-parse --verify --end-of-options "$head^{commit}") || error "Invalid head commit."
+
 if [ -z "$base" ] || [ -z "${base//0/}" ]; then
   range="$head"
-  diff_base="$(git hash-object -t tree /dev/null)"
+  commits="$head"
 else
+  base=$(git rev-parse --verify --end-of-options "$base^{commit}") || error "Invalid base commit."
   range="$base..$head"
-  diff_base="$base"
+  commits=$(git rev-list --reverse "$range") || error "Cannot enumerate commits."
 fi
 
 fail=0
-added=$(git diff -U0 --no-color "$diff_base" "$head" | grep -E '^\+' | grep -vE '^\+\+\+ ')
-
-if printf '%s\n' "$added" | grep -qE "$SECRET"; then
-  echo "✖ ci-check: 新增内容含疑似密钥" >&2
-  fail=1
-fi
-
-if printf '%s\n' "$added" | grep -qE "$TZLEAK"; then
-  echo "✖ ci-check: 新增内容含本地时区/位置信息" >&2
-  fail=1
-fi
-
-if printf '%s\n' "$added" | grep -qiE "$RELAY"; then
-  echo "✖ ci-check: 新增内容含中转切换工具名称（本机只走官方订阅）" >&2
-  fail=1
-fi
-
-# Every new commit (author and committer) must be stamped +0000.
-if [ "$range" = "$head" ]; then
-  commits=$(git log -1 --format='%h %ai|%ci' "$head")
-else
-  commits=$(git log --format='%h %ai|%ci' "$range")
-fi
-bad=$(printf '%s\n' "$commits" | grep -vE '^[0-9a-f]+ [^|]*\+0000\|.*\+0000$' | grep -v '^$')
-if [ -n "$bad" ]; then
-  echo "✖ ci-check: 以下提交时区不是 +0000（多半是网页合并/编辑，或本机未设 TZ=UTC0）：" >&2
-  printf '  %s\n' "$bad" >&2
-  fail=1
-fi
+# Inspect each commit: deleting forbidden content later must not hide its history.
+while IFS= read -r commit; do
+  [ -n "$commit" ] || continue
+  diff=$(git diff-tree --root --no-commit-id -r -m --first-parent -U0 --no-color "$commit") || error "Cannot read commit diff."
+  added=$(printf '%s\n' "$diff" | sed -n '/^+++ /d; /^+/p') || error "Cannot extract added lines."
+  for name in "${rules[@]}"; do
+    options=(-E)
+    [ "$name" != RELAY ] || options+=(-i)
+    # Consume all input; grep -q may cause SIGPIPE with pipefail on large diffs.
+    printf '%s\n' "$added" | grep "${options[@]}" "${!name}" >/dev/null
+    rc=$?
+    [ "$rc" -le 1 ] || error "Pattern scan failed: $name"
+    if [ "$rc" -eq 0 ]; then
+      echo "ci-check: $name rule matched in commit $commit" >&2
+      fail=1
+    fi
+  done
+  dates=$(git show -s --format='%ai|%ci' "$commit") || error "Cannot read commit timestamps."
+  if [[ ! "$dates" =~ \+0000\|.*\+0000$ ]]; then
+    echo "ci-check: Non-UTC author or committer timestamp in $commit" >&2
+    fail=1
+  fi
+done <<< "$commits"
 
 # Files that .gitignore blocks but were force-added anyway.
-forced=$(git ls-files -ci --exclude-standard)
+forced=$(git ls-files -ci --exclude-standard) || error "Cannot check ignored tracked files."
 if [ -n "$forced" ]; then
   echo "✖ ci-check: 以下文件被 .gitignore 拦截却仍被跟踪（疑似 git add -f）：" >&2
   printf '  %s\n' "$forced" >&2
